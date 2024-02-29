@@ -225,6 +225,25 @@ class _DoctorCardState extends State<DoctorCard> {
       },
     );
   }
+
+  Widget _buildSkills(String skills) {
+    List<String> skillList = skills.split(',');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: skillList.map((skill) {
+        return Container(
+          margin: EdgeInsets.symmetric(vertical: 5),
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(skill.trim()),
+        );
+      }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -306,6 +325,7 @@ class _DoctorCardState extends State<DoctorCard> {
                   },
                 ),
                 items: _medecins.map((med) {
+                  List<String> competences = med.competences!.split(',');
                   return Builder(
                     builder: (BuildContext context) {
                       return GestureDetector(
@@ -328,20 +348,24 @@ class _DoctorCardState extends State<DoctorCard> {
                             borderRadius: BorderRadius.circular(20),
                             border: _selectedIndex == med
                                 ? Border.all(
-                                color: Colors.blue.shade500, width: 1)
+                              color: Colors.blue.shade500,
+                              width: 1,
+                            )
                                 : null,
                             boxShadow: _selectedIndex == med
                                 ? [
                               BoxShadow(
-                                  color: Colors.blue.shade100,
-                                  blurRadius: 30,
-                                  offset: Offset(0, 10))
+                                color: Colors.blue.shade100,
+                                blurRadius: 30,
+                                offset: Offset(0, 10),
+                              ),
                             ]
                                 : [
                               BoxShadow(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  blurRadius: 20,
-                                  offset: Offset(0, 5))
+                                color: Colors.grey.withOpacity(0.2),
+                                blurRadius: 20,
+                                offset: Offset(0, 5),
+                              ),
                             ],
                           ),
                           child: SingleChildScrollView(
@@ -365,26 +389,56 @@ class _DoctorCardState extends State<DoctorCard> {
                                 Text(
                                   med.nomPrenom!,
                                   style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 SizedBox(height: 20),
                                 Text(
                                   med.specialite!,
                                   style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey.shade600),
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
+                                SizedBox(height: 20),
+                                if (_isSelected)
+                                  ...competences.map((competence) {
+                                    return Container(
+                                      padding: EdgeInsets.all(8),
+                                      margin: EdgeInsets.symmetric(vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Text(
+                                        competence.trim(),
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                    );
+                                  }).toList(),if (_isSelected)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        // Logique pour prendre rendez-vous
+                                      },
+                                      child: Text('Prendre rendez-vous'),
+                                    ),
+                                  ),
+
                               ],
                             ),
                           ),
                         ),
+
                       );
                     },
                   );
                 }).toList(),
               ),
             ),
+
           ],
         ),
       ),

@@ -7,6 +7,7 @@ import 'package:swipeable_button_view/swipeable_button_view.dart';
 
 import '../theme/theme_model.dart';
 import 'LoginScreen.dart';
+import 'animation_page.dart';
 
 class AddAppointmentPage extends StatefulWidget {
   @override
@@ -134,7 +135,7 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
                   lastDate: DateTime(2101),
                 );
 
-                // Ajouter ici la logique pour traiter la date sélectionnée si nécessaire
+
                 if (pickedDate != null) {
                   print('Date sélectionnée: $pickedDate');
                 }
@@ -147,7 +148,7 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
             // Bouton pour ajouter des pièces jointes avec une icône
             ElevatedButton.icon(
               onPressed: () {
-                // Logique pour ajouter des pièces jointes
+
               },
               icon: Icon(Icons.attach_file),
               label: Text('Ajouter des pièces jointes'),
@@ -196,14 +197,18 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
                 });
               },
               onFinish: () async {
-                // Naviguer vers la page de connexion lorsque le bouton est complètement glissé
+                final String animationUrl = 'https://lottie.host/75f3c1bd-3ec8-4b3b-8843-eee26f4b2631/ux35ssq7Uh.json';
+
+                // Naviguer vers la page de l'animation avec l'URL de l'animation lorsque le bouton est complètement glissé
                 await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(builder: (context) => AnimationPage(animationUrl: animationUrl)),
                 );
 
-                // Après le retour de la page de connexion, vous pouvez exécuter du code supplémentaire si nécessaire
+
+                // Code à exécuter après le retour de la page de l'animation
               },
+
 
             ),
 

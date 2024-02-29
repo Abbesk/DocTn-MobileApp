@@ -1,6 +1,7 @@
 import 'package:doctor_app/screens/LoginScreen.dart';
 import 'package:doctor_app/screens/ajouterRendezVous.dart';
 import 'package:doctor_app/screens/doctorCard.dart';
+import 'package:doctor_app/screens/multiple_forms.dart';
 import 'package:doctor_app/theme/app_theme.dart';
 import 'package:doctor_app/theme/theme_model.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +21,7 @@ void main() {
               builder: (context, ThemeModel themeNotifier, child) {
                 return MaterialApp(
 
-                  home: AddAppointmentPage(),
+                  home: LoginPage(),
                   theme: themeNotifier.isDark ? AppTheme.dark : AppTheme.light,
                   debugShowCheckedModeBanner: false,
                 );
