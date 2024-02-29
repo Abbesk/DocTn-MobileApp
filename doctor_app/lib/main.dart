@@ -1,4 +1,5 @@
 import 'package:doctor_app/screens/LoginScreen.dart';
+import 'package:doctor_app/screens/StepForms.dart';
 import 'package:doctor_app/screens/ajouterRendezVous.dart';
 import 'package:doctor_app/screens/doctorCard.dart';
 import 'package:doctor_app/screens/multiple_forms.dart';
@@ -20,7 +21,6 @@ void main() {
           child: Consumer<ThemeModel>(
               builder: (context, ThemeModel themeNotifier, child) {
                 return MaterialApp(
-
                   home: LoginPage(),
                   theme: themeNotifier.isDark ? AppTheme.dark : AppTheme.light,
                   debugShowCheckedModeBanner: false,

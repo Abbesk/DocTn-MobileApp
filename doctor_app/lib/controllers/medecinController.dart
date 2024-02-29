@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:intl/intl.dart';
 
 import '../entities/medecin.dart';
 
@@ -22,7 +23,7 @@ class MedController extends GetxController {
   Future<List<Medecin>> fetchMedecins({String? ville, String? nomPrenom, String? specialite}) async {
     try {
       final token = (await storage.read(key: "jwt_token"))?.replaceAll('"', '');
-      final baseUrl = 'http://localhost:8080/api/v1/medecin/all';
+      final baseUrl = 'http://192.168.1.15:8080/api/v1/medecin/all';
 
       // Construire l'URL en ajoutant les paramètres si non nuls
       String url = baseUrl;
@@ -55,6 +56,32 @@ class MedController extends GetxController {
     } catch (e) {
       print('Failed to fetch medecins due to unexpected error: $e');
       throw Exception('Unexpected error occurred while fetching medecins');
+    }
+  }
+  Future<List<String>> fetchAvailableTimeSlots(int doctorId, DateTime date) async {
+    try {
+      final token = await storage.read(key: "jwt_token"); // Assurez-vous de récupérer correctement le jeton
+      final baseUrl = 'http://192.168.1.15:8080/api/v1/rendezvous/$doctorId/disponible/${DateFormat('yyyy-MM-dd').format(date)}';
+
+      final response = await http.get(
+        Uri.parse(baseUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<String> availableTimeSlots = json.decode(response.body).cast<String>();
+        return availableTimeSlots;
+      } else {
+        final errorMessage = response.reasonPhrase ?? 'Unknown error';
+        print('Failed to fetch available time slots. Reason: $errorMessage');
+        throw Exception('Failed to fetch available time slots. Reason: $errorMessage');
+      }
+    } catch (e) {
+      print('Failed to fetch available time slots due to unexpected error: $e');
+      throw Exception('Unexpected error occurred while fetching available time slots');
     }
   }
 

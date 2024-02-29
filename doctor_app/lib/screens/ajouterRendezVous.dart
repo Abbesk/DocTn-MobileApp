@@ -1,66 +1,64 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:swipeable_button_view/swipeable_button_view.dart';
-
+import 'package:flutter_datetime_picker_bdaya/flutter_datetime_picker_bdaya.dart';
+import 'package:table_calendar/table_calendar.dart';
+import '../entities/medecin.dart';
 import '../theme/theme_model.dart';
 import 'LoginScreen.dart';
 import 'animation_page.dart';
+import '../controllers/medecinController.dart';
 
 class AddAppointmentPage extends StatefulWidget {
+  final Medecin selectedDoctor;
+
+  AddAppointmentPage({required this.selectedDoctor});
+
   @override
   _AddAppointmentPageState createState() => _AddAppointmentPageState();
 }
-
 class _AddAppointmentPageState extends State<AddAppointmentPage> {
-  late DateTime _selectedDate;
-  late TimeOfDay _selectedTime;
+  Medecin? selectedDoctor;
+  final MedController medecinController = Get.find<MedController>();
   late String _selectedDoctor;
+  late bool _pushed =false;
   late bool _isUrgent = false;
-  late TextEditingController _remarksController; // Ajout du contrôleur pour les remarques
-  bool isFinished=false ;
-
+  late TextEditingController _remarksController;
+  int _currentStep = 0;
+  bool isFinished = false;
+  DateTime _selectedDate = DateTime.now();
+  String? _selectedTimeSlot; // Ajouter la variable pour stocker le créneau horaire sélectionné
+  Map<DateTime, List<dynamic>> _events = {};
+  List<String>? _availableTimeSlots;
+  Future<void> _fetchAvailableTimeSlots(int doctorId, DateTime date) async {
+    try {
+      final List<String> availableTimeSlots = await medecinController.fetchAvailableTimeSlots(doctorId, date);
+      setState(() {
+        _events[date] = availableTimeSlots;
+        _availableTimeSlots= availableTimeSlots;
+      });
+    } catch (e) {
+      print('Error fetching available time slots: $e');
+    }
+  }
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now();
-    _selectedTime = TimeOfDay.now();
-    _selectedDoctor = 'Dr. John Doe'; // Médecin par défaut
-    _remarksController = TextEditingController(); // Initialisation du contrôleur
+    selectedDoctor = widget.selectedDoctor; // Assign value from the constructor to the local variable
+    _pushed= false ;
+    _selectedDoctor = selectedDoctor?.nomPrenom ?? 'Dr. John Doe'; // Use the selected doctor's name or default to 'Dr. John Doe'
+    _remarksController = TextEditingController();
   }
-
   @override
   void dispose() {
-    _remarksController.dispose(); // Libération des ressources du contrôleur
+    _remarksController.dispose();
     super.dispose();
   }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2101),
-    );
-    if (pickedDate != null && pickedDate != _selectedDate)
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime,
-    );
-    if (pickedTime != null && pickedTime != _selectedTime)
-      setState(() {
-        _selectedTime = pickedTime;
-      });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,31 +66,18 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
         title: Text('DoctorApp'),
         actions: [
           IconButton(
-              icon: Icon(Icons.logout),
-              onPressed: () {
-                AwesomeDialog(
-                  context: context,
-                  dialogType: DialogType.warning,
-                  animType: AnimType.bottomSlide,
-                  title: 'Confirmation de déconnexion',
-                  desc: 'Voulez-vous vraiment se déconnecter ?',
-                  btnCancelOnPress: () {},
-                  btnOkOnPress: () {
-                    //Se deconnecter avec auth logout
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => LoginPage()),
-                    );
-                  },
-                )..show();
-              }
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              // Handle logout
+            },
           ),
           Consumer<ThemeModel>(
             builder: (context, themeNotifier, child) {
               return IconButton(
-
-                icon: Icon(themeNotifier.isDark ? Icons.nightlight_round : Icons.wb_sunny,
+                icon: Icon(
+                  themeNotifier.isDark
+                      ? Icons.nightlight_round
+                      : Icons.wb_sunny,
                   color: themeNotifier.isDark ? Colors.white : Colors.black,
                 ),
                 onPressed: () {
@@ -101,121 +86,226 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
               );
             },
           ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Stepper(
+              currentStep: _currentStep,
+              onStepTapped: (int newIndex) {
+                setState(() {
+                  _currentStep = newIndex;
+                });
+              },
+              onStepContinue: () {
+                setState(() {
+                  if (_currentStep < 3) {
+                    _currentStep += 1;
+                  }
+                });
+              },
+              onStepCancel: () {
+                setState(() {
+                  if (_currentStep > 0) {
+                    _currentStep -= 1;
+                  }
+                });
+              },
+              steps: [
+                Step(
+                  title: Text('Médecin Info'),
+                  content: Column(
+                    children: [
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: selectedDoctor?.nomPrenom,
+                          prefixIcon: Icon(Icons.person),
+                        ),
+                        enabled: false, // Rendre le champ de texte non modifiable
+                      ),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: selectedDoctor?.specialite,
+                          prefixIcon: Icon(Icons.local_hospital),
+                        ),
+                        enabled: false, // Rendre le champ de texte non modifiable
+                      ),
+                    ],
+                  ),
+                ),
+                Step(
+                  title: Text('Date & Time'),
+                  content: Column(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          final DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime(2101),
+                          );
+                          if (pickedDate != null) {
+                            setState(() {
+                              _selectedDate = pickedDate;
+                              _pushed=true;
+                              _fetchAvailableTimeSlots(selectedDoctor!.id!, pickedDate); // Remplacez `doctorId` par l'ID réel du médecin
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.calendar_today), // Icône de calendrier
+                            SizedBox(width: 8), // Espacement entre l'icône et le texte
+                            Text('Select Date'), // Texte du bouton
+                          ],
+                        ),
+                      ),
+                      if (_selectedDate != null  && _pushed==true)
+                        Row(
+                          children: [
+                            Icon(Icons.event), // Icône de calendrier
+                            SizedBox(width: 8), // Espacement entre l'icône et le texte
+                            Text('Selected Date: ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}'), // Afficher la date sélectionnée
+                          ],
+                        ),
+                      if (_availableTimeSlots != null && _availableTimeSlots!.isNotEmpty)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 20),
+                            Text(
+                              'Available Time Slots:',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Wrap(
+                              spacing: 8.0,
+                              runSpacing: 4.0,
+                              children: _availableTimeSlots!.map((timeSlot) {
+                                final formattedTimeSlot = timeSlot.substring(0, 5); // Supprimer les secondes et formater au format HH:mm
+                                return FilterChip(
+                                  label: Text(formattedTimeSlot),
+                                  selected: _selectedTimeSlot == timeSlot,
+                                  onSelected: (isSelected) {
+                                    setState(() {
+                                      _selectedTimeSlot = isSelected ? timeSlot : null;
+                                    });
+                                  },
+                                  backgroundColor: _selectedTimeSlot == timeSlot ? Colors.green.withOpacity(0.3) : null, // Mettre en surbrillance le créneau sélectionné
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+
+
+                Step(
+                  title: Text('Remarks'),
+                  content: Column(
+                    children: [
+                      TextFormField(
+                        controller: _remarksController,
+                        decoration: InputDecoration(
+                          labelText: 'Remarques',
+                          prefixIcon: Icon(Icons.comment),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Step(
+                  title: Text('Urgent?'),
+                  content: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _isUrgent,
+                            onChanged: (value) {
+                              setState(() {
+                                _isUrgent = value ?? false;
+                              });
+                            },
+                          ),
+                          Text('Urgent'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20), // Marge à gauche et à droite
+            child: Container(
+              margin: EdgeInsets.only(bottom: 20),
+              child: SizedBox(
+                height: 50, // Hauteur fixe pour le bouton
+                child: SwipeableButtonView(
+                  buttonText: _selectedTimeSlot == null ? "Sélectionner l'heure" : "Valider",
+                  buttonWidget: _selectedTimeSlot == null
+                      ? Icon(Icons.close, color: Colors.white)
+                      : Icon(Icons.check, color: Colors.white),
+                  activeColor: _selectedTimeSlot == null ? Colors.red : Colors.purple,
+                  isFinished: isFinished,
+                  onWaitingProcess: () {
+                    if (_selectedTimeSlot != null) {
+                      Future.delayed(Duration(seconds: 1), () {
+                        setState(() {
+                          isFinished = true;
+                        });
+                      });
+                    }
+                    if (_selectedTimeSlot == null) {
+                      AwesomeDialog(
+                        context: context,
+                        dialogType: DialogType.warning,
+                        animType: AnimType.topSlide,
+                        title: 'Attention',
+                        desc: 'Veuillez choisir un créneau avant de valider la prise de rendez-vous.',
+                        btnCancelOnPress: () {},
+                        btnOkOnPress: () {
+                          setState(() {
+                            isFinished = false;
+                          });
+                        },
+                      )..show();
+                    }
+                  },
+                  onFinish: () async {
+                    if(_selectedTimeSlot!=null){
+                      final String animationUrl =
+                          'https://lottie.host/75f3c1bd-3ec8-4b3b-8843-eee26f4b2631/ux35ssq7Uh.json';
+
+                      // Naviguer vers la page de l'animation avec l'URL de l'animation lorsque le bouton est complètement glissé
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => AnimationPage(animationUrl: animationUrl)),
+                      );
+                    }
+                  },
+
+                ),
+              ),
+            ),
+          ),
+
 
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Champ de texte pour le nom du patient avec une icône
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Nom du patient',
-                prefixIcon: Icon(Icons.person),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Champ de texte pour l'adresse du médecin avec une icône
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'Adresse du médecin',
-                prefixIcon: Icon(Icons.location_on),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Champ de texte pour choisir la date et l'heure du rendez-vous
-            ElevatedButton.icon(
-              onPressed: () async {
-                final DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(2101),
-                );
-
-
-                if (pickedDate != null) {
-                  print('Date sélectionnée: $pickedDate');
-                }
-              },
-              icon: Icon(Icons.calendar_today), // Icône pour afficher le calendrier
-              label: Text('Sélectionner  l\'horaire '),
-            ),
-
-            SizedBox(height: 20),
-            // Bouton pour ajouter des pièces jointes avec une icône
-            ElevatedButton.icon(
-              onPressed: () {
-
-              },
-              icon: Icon(Icons.attach_file),
-              label: Text('Ajouter des pièces jointes'),
-            ),
-            SizedBox(height: 20),
-            // Champ de texte pour les remarques avec une icône
-            TextFormField(
-              controller: _remarksController,
-              decoration: InputDecoration(
-                labelText: 'Remarques',
-                prefixIcon: Icon(Icons.comment),
-              ),
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Checkbox(
-                  value: _isUrgent,
-                  onChanged: (value) {
-                    setState(() {
-                      _isUrgent = value ?? false;
-                    });
-                  },
-                ),
-                Text('Urgent'),
-              ],
-            ),
-            Spacer(),
-            // Bouton pour enregistrer le rendez-vous
-            SwipeableButtonView(
-              buttonText: "Planifier le rendez-vous",
-              buttonWidget: Icon(
-                Icons.calendar_today,
-                color: Colors.white,
-              ),
-              activeColor: Colors.lightGreen,
-              isFinished: isFinished,
-              onWaitingProcess: () {
-                // Action pendant que l'utilisateur attend
-                // Par exemple, vous pouvez afficher un indicateur de chargement
-                // ou exécuter une autre logique pour informer l'utilisateur qu'une action est en cours.
-                Future.delayed(Duration(seconds: 2), () {
-                  setState(() {
-                    isFinished = true;
-                  });
-                });
-              },
-              onFinish: () async {
-                final String animationUrl = 'https://lottie.host/75f3c1bd-3ec8-4b3b-8843-eee26f4b2631/ux35ssq7Uh.json';
-
-                // Naviguer vers la page de l'animation avec l'URL de l'animation lorsque le bouton est complètement glissé
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AnimationPage(animationUrl: animationUrl)),
-                );
-
-
-                // Code à exécuter après le retour de la page de l'animation
-              },
-
-
-            ),
-
-          ],
-        ),
-      ),
-
     );
   }
 }

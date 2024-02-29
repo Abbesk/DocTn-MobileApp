@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 
 import '../theme/theme_model.dart';
 import 'LoginScreen.dart';
+import 'ajouterRendezVous.dart';
 
 class DoctorCard extends StatefulWidget {
   const DoctorCard({Key? key}) : super(key: key);
@@ -54,7 +55,7 @@ class _DoctorCardState extends State<DoctorCard> {
       setState(() {
         v_location_medecin = address?.split(', ')[1].split(' ').sublist(1).join(' ');
       });
-      print(v_location_medecin);
+
       await fetchMedecins();
     } catch (e) {
       print('Error initializing DoctorCard: $e');
@@ -123,7 +124,7 @@ class _DoctorCardState extends State<DoctorCard> {
       // Permissions are granted, get current position
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium);
-      print('Position: $position');
+
       return position;
     } catch (e) {
       print('Error getting position: $e');
@@ -309,135 +310,141 @@ class _DoctorCardState extends State<DoctorCard> {
                 ],
               ),
             ),
-            Expanded(
-              child: CarouselSlider(
-                carouselController: _carouselController,
-                options: CarouselOptions(
-                  height: 450.0,
-                  aspectRatio: 16 / 9,
-                  viewportFraction: 0.70,
-                  enlargeCenterPage: true,
-                  pageSnapping: true,
-                  onPageChanged: (index, reason) {
-                    setState(() {
-                      _current = index;
-                    });
-                  },
-                ),
-                items: _medecins.map((med) {
-                  List<String> competences = med.competences!.split(',');
-                  return Builder(
-                    builder: (BuildContext context) {
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            if (_selectedIndex == med) {
-                              _selectedIndex = null;
-                              _isSelected = false;
-                            } else {
-                              _selectedIndex = med;
-                              _isSelected = true;
-                            }
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: Duration(milliseconds: 300),
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: _selectedIndex == med
-                                ? Border.all(
-                              color: Colors.blue.shade500,
-                              width: 1,
-                            )
-                                : null,
-                            boxShadow: _selectedIndex == med
-                                ? [
-                              BoxShadow(
-                                color: Colors.blue.shade100,
-                                blurRadius: 30,
-                                offset: Offset(0, 10),
-                              ),
-                            ]
-                                : [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                blurRadius: 20,
-                                offset: Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                AnimatedContainer(
-                                  duration: Duration(milliseconds: 500),
-                                  curve: Curves.easeIn,
-                                  height: _isSelected ? 200 : 320,
-                                  margin: EdgeInsets.only(top: 10),
-                                  clipBehavior: Clip.hardEdge,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Image.network(
-                                    med.photo!,
-                                    fit: BoxFit.cover,
-                                  ),
+              Expanded(
+                child: CarouselSlider(
+                  carouselController: _carouselController,
+                  options: CarouselOptions(
+                    height: 450.0,
+                    aspectRatio: 16 / 9,
+                    viewportFraction: 0.70,
+                    enlargeCenterPage: true,
+                    pageSnapping: true,
+                    onPageChanged: (index, reason) {
+                      setState(() {
+                        _current = index;
+                      });
+                    },
+                  ),
+                  items: _medecins.map((med) {
+                    List<String> competences = med.competences!.split(',');
+                    return Builder(
+                      builder: (BuildContext context) {
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (_selectedIndex == med) {
+                                _selectedIndex = null;
+                                _isSelected = false;
+                              } else {
+                                _selectedIndex = med;
+                                _isSelected = true;
+                              }
+                            });
+                          },
+                          child: AnimatedContainer(
+                            duration: Duration(milliseconds: 300),
+                            width: MediaQuery.of(context).size.width,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: _selectedIndex == med
+                                  ? Border.all(
+                                color: Colors.blue.shade500,
+                                width: 1,
+                              )
+                                  : null,
+                              boxShadow: _selectedIndex == med
+                                  ? [
+                                BoxShadow(
+                                  color: Colors.blue.shade100,
+                                  blurRadius: 30,
+                                  offset: Offset(0, 10),
                                 ),
-                                SizedBox(height: 20),
-                                Text(
-                                  med.nomPrenom!,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              ]
+                                  : [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  blurRadius: 20,
+                                  offset: Offset(0, 5),
                                 ),
-                                SizedBox(height: 20),
-                                Text(
-                                  med.specialite!,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                SizedBox(height: 20),
-                                if (_isSelected)
-                                  ...competences.map((competence) {
-                                    return Container(
-                                      padding: EdgeInsets.all(8),
-                                      margin: EdgeInsets.symmetric(vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade200,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Text(
-                                        competence.trim(),
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                    );
-                                  }).toList(),if (_isSelected)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 10),
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        // Logique pour prendre rendez-vous
-                                      },
-                                      child: Text('Prendre rendez-vous'),
-                                    ),
-                                  ),
-
                               ],
                             ),
-                          ),
-                        ),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  AnimatedContainer(
+                                    duration: Duration(milliseconds: 500),
+                                    curve: Curves.easeIn,
+                                    height: _isSelected ? 200 : 320,
+                                    margin: EdgeInsets.only(top: 10),
+                                    clipBehavior: Clip.hardEdge,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Image.network(
+                                      med.photo!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  SizedBox(height: 20),
+                                  Text(
+                                    med.nomPrenom!,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    med.specialite!,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  SizedBox(height: 20),
+                                  if (_isSelected)
+                                    ...competences.map((competence) {
+                                      return Container(
+                                        padding: EdgeInsets.all(8),
+                                        margin: EdgeInsets.symmetric(vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Text(
+                                          competence.trim(),
+                                          style: TextStyle(fontSize: 12),
+                                        ),
+                                      );
+                                    }).toList(),if (_isSelected)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 10),
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => AddAppointmentPage(selectedDoctor: med),
+                                            ),
+                                          );
+                                        },
+                                        child: Text('Prendre rendez-vous'),
+                                      ),
+                                    ),
 
-                      );
-                    },
-                  );
-                }).toList(),
+
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
               ),
-            ),
 
           ],
         ),

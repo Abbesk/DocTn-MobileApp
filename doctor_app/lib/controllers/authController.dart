@@ -16,7 +16,7 @@ class AuthController extends GetxController {
   Future<bool> login(String codeuser, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/api/v1/auth/authenticate'),
+        Uri.parse('http://192.168.1.15:8080/api/v1/auth/authenticate'),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
