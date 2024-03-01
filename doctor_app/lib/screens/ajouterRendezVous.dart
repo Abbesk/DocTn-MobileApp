@@ -1,4 +1,5 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -9,6 +10,7 @@ import 'package:swipeable_button_view/swipeable_button_view.dart';
 import 'package:flutter_datetime_picker_bdaya/flutter_datetime_picker_bdaya.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../entities/medecin.dart';
+import '../notification_controller.dart';
 import '../theme/theme_model.dart';
 import 'LoginScreen.dart';
 import 'animation_page.dart';
@@ -286,17 +288,30 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
                     }
                   },
                   onFinish: () async {
-                    if(_selectedTimeSlot!=null){
-                      final String animationUrl =
-                          'https://lottie.host/75f3c1bd-3ec8-4b3b-8843-eee26f4b2631/ux35ssq7Uh.json';
+                    if (_selectedTimeSlot != null) {
+                      final String animationUrl = 'https://lottie.host/75f3c1bd-3ec8-4b3b-8843-eee26f4b2631/ux35ssq7Uh.json';
 
                       // Naviguer vers la page de l'animation avec l'URL de l'animation lorsque le bouton est complètement glissé
                       await Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => AnimationPage(animationUrl: animationUrl)),
                       );
+
+                      // Envoyer une notification ici
+                      await NotificationController.initialize(); // Assurez-vous que votre NotificationController est importé
+                      // Ajoutez votre logique pour envoyer une notification
+                      // Par exemple :
+                      await AwesomeNotifications().createNotification(
+                        content: NotificationContent(
+                          id: 10,
+                          channelKey: 'alerts',
+                          title: 'Rendez-vous confirmé',
+                          body: 'Votre rendez-vous avec ${selectedDoctor?.nomPrenom} le ${DateFormat('dd/MM/yyyy').format(_selectedDate)} à ${_selectedTimeSlot} a été confirmé.',
+                        ),
+                      );
                     }
                   },
+
 
                 ),
               ),

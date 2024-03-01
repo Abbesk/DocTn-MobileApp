@@ -10,11 +10,13 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'controllers/authController.dart';
 import 'controllers/medecinController.dart';
+import 'notification_controller.dart'; // Assurez-vous d'importer votre classe NotificationController
 
-
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   Get.put(AuthController());
   Get.lazyPut(() => MedController());
+  await NotificationController.initialize(); // Appelez la méthode initialize() de NotificationController
   runApp(
       ChangeNotifierProvider(
           create: (_) => ThemeModel(),

@@ -16,7 +16,7 @@ class AuthController extends GetxController {
   Future<bool> login(String codeuser, String password) async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.15:8080/api/v1/auth/authenticate'),
+        Uri.parse('http://192.168.122.232:8080/api/v1/auth/authenticate'),
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
@@ -29,7 +29,7 @@ class AuthController extends GetxController {
         print(user);
         // Utiliser les données de l'utilisateur comme vous le souhaitez
         await storage.write(key: 'jwt_token', value: user.token);
-
+        await storage.write(key: 'id_patient', value: user.id.toString());
         isLoggedIn.value = true;
         return true;
       } else {
