@@ -309,6 +309,40 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
                           body: 'Votre rendez-vous avec ${selectedDoctor?.nomPrenom} le ${DateFormat('dd/MM/yyyy').format(_selectedDate)} à ${_selectedTimeSlot} a été confirmé.',
                         ),
                       );
+
+                      try {
+                        // Récupérer l'ID du patient à partir du stockage sécurisé
+                        final idPatientString = await storage.read(key: 'id_patient');
+                        print("L'ID du patient est : $idPatientString");
+                        if (idPatientString == null) {
+                          throw Exception('ID du patient non trouvé');
+                        }
+                        final idPatient = int.parse(idPatientString);
+
+                        final selectedDateFormatted = DateFormat('dd/MM/yyyy').format(_selectedDate);
+                        print("Date sélectionnée : $selectedDateFormatted");
+
+                        // Formater le créneau horaire sélectionné au format "HH:mm"
+                        final selectedTimeSlotFormatted = DateFormat('HH:mm').format(DateFormat('HH:mm:ss').parse(_selectedTimeSlot!));
+                        print("Heure de début sélectionnée : $selectedTimeSlotFormatted");
+
+                        print("ID du médecin : ${selectedDoctor!.id}");
+                        print("ID du patient : $idPatient");
+
+                        await medecinController.prendreRendezVous(
+                          date: selectedDateFormatted,
+                          heureDebut: selectedTimeSlotFormatted,
+                          sujet: 'Checkup',
+                          idMedecin: selectedDoctor!.id!,
+                          idPatient: idPatient, // Utiliser l'ID récupéré du patient
+                        );
+                        print('Rendez-vous pris avec succès');
+                      } catch (e) {
+                        print('Erreur lors de la prise de rendez-vous: $e');
+                        // Gérer l'erreur
+                      }
+
+
                     }
                   },
 

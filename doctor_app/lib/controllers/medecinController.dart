@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
 
 import '../entities/medecin.dart';
+import '../entities/rendezvous.dart';
 
 final storage = FlutterSecureStorage();
 
@@ -86,18 +87,18 @@ class MedController extends GetxController {
   }
   Future<void> prendreRendezVous({
     required String date,
-    required String heure,
+    required String heureDebut,
+    required String sujet,
     required int idMedecin,
+    required int idPatient,
   }) async {
     try {
-      final idPatientString = await storage.read(key: 'id_patient');
-      final idPatient = int.parse(idPatientString!);
       final token = (await storage.read(key: "jwt_token"))?.replaceAll('"', '');
-      final baseUrl = 'http://localhost:8080/api/v1/rendezvous/ajouter';
+      final baseUrl = 'http://192.168.122.232:8080/api/v1/rendezvous';
       final Map<String, dynamic> body = {
         "date": date,
-        "heure": heure,
-        "sujet": "Checkup",
+        "heureDebut": heureDebut,
+        "sujet": sujet,
         "idMedecin": idMedecin,
         "idPatient": idPatient,
       };
@@ -122,5 +123,34 @@ class MedController extends GetxController {
       throw Exception('Unexpected error occurred while taking rendez-vous');
     }
   }
+  Future<List<RendezVous>> getAllRendezVous() async {
+    try {
+      final token = await storage.read(key: "jwt_token");
+      final baseUrl = 'http://192.168.122.232:8080/api/v1/patient/rendezvous';
+
+      final response = await http.get(
+        Uri.parse(baseUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        final List<RendezVous> rendezVousList =
+        jsonData.map((data) => RendezVous.fromJson(data)).toList();
+        return rendezVousList;
+      } else {
+        final errorMessage = response.reasonPhrase ?? 'Unknown error';
+        print('Failed to fetch rendez-vous. Reason: $errorMessage');
+        throw Exception('Failed to fetch rendez-vous. Reason: $errorMessage');
+      }
+    } catch (e) {
+      print('Failed to fetch rendez-vous due to unexpected error: $e');
+      throw Exception('Unexpected error occurred while fetching rendez-vous');
+    }
+  }
+
 
 }
