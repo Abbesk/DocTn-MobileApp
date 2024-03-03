@@ -298,15 +298,13 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
                       );
 
                       // Envoyer une notification ici
-                      await NotificationController.initialize(); // Assurez-vous que votre NotificationController est importé
-                      // Ajoutez votre logique pour envoyer une notification
-                      // Par exemple :
-                      await AwesomeNotifications().createNotification(
+                      // Envoyer une notification ici
+                      AwesomeNotifications().createNotification(
                         content: NotificationContent(
-                          id: 10,
-                          channelKey: 'alerts',
+                          id: 1,
+                          channelKey: 'basic_channel',
                           title: 'Rendez-vous confirmé',
-                          body: 'Votre rendez-vous avec ${selectedDoctor?.nomPrenom} le ${DateFormat('dd/MM/yyyy').format(_selectedDate)} à ${_selectedTimeSlot} a été confirmé.',
+                          body: 'Votre rendez-vous a été confirmé avec succès.',
                         ),
                       );
 

@@ -85,7 +85,7 @@ class _ListeRendezVousState extends State<ListeRendezVous> {
                 child: Row(
                   children: [
                     // Image du médecin
-                    Container(
+                    /*Container(
                       height: 130,
                       width: 100,
                       decoration: BoxDecoration(
@@ -96,7 +96,7 @@ class _ListeRendezVousState extends State<ListeRendezVous> {
                           fit: BoxFit.cover,
                         ),
                       ),
-                    ),
+                    ),*/
                     SizedBox(width: 25),
                     Expanded(
                       child: Column(
@@ -112,10 +112,11 @@ class _ListeRendezVousState extends State<ListeRendezVous> {
                             ),
                           ),
                           Text(
-                            'Date: ${DateFormat('yyyy-MM-dd').format(
-                                rendezVous.date!)}\n'
-                                'Heure début: ${rendezVous.heureDebut}\n'
-                                'Heure fin: ${rendezVous.heureFin}',
+                            'Date: \n'
+                                'Heure début: '
+                                //'${rendezVous.heureDebut}\n'
+                                'Heure fin: ',
+                                //'${rendezVous.heureFin}',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
@@ -124,7 +125,9 @@ class _ListeRendezVousState extends State<ListeRendezVous> {
                           ),
                           // Spécialité du médecin
                           Text(
-                            'Spécialité: ${rendezVous.medecin!.specialite}',
+                            'Spécialité:'
+                                //' ${rendezVous.medecin!.specialite}'
+                            ,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w400,

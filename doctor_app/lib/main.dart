@@ -1,8 +1,5 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:doctor_app/screens/LoginScreen.dart';
-import 'package:doctor_app/screens/StepForms.dart';
-import 'package:doctor_app/screens/ajouterRendezVous.dart';
-import 'package:doctor_app/screens/doctorCard.dart';
-import 'package:doctor_app/screens/multiple_forms.dart';
 import 'package:doctor_app/theme/app_theme.dart';
 import 'package:doctor_app/theme/theme_model.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +11,23 @@ import 'notification_controller.dart'; // Assurez-vous d'importer votre classe N
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+
+
+// Initialize notifications en utilisant l'icône personnalisée
+  await AwesomeNotifications().initialize(
+    null,
+    [
+      NotificationChannel(
+        channelKey: 'basic_channel',
+        channelName: 'Basic Channel',
+        channelDescription: 'Basic notifications channel',
+      )
+    ],
+  );
+
   Get.put(AuthController());
   Get.lazyPut(() => MedController());
-  await NotificationController.initialize(); // Appelez la méthode initialize() de NotificationController
   runApp(
       ChangeNotifierProvider(
           create: (_) => ThemeModel(),
