@@ -12,8 +12,12 @@ import '../entities/medecin.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import '../theme/theme_model.dart';
+import 'ListAppointments.dart';
+
 import 'LoginScreen.dart';
 import 'ajouterRendezVous.dart';
 
@@ -52,8 +56,10 @@ class _DoctorCardState extends State<DoctorCard> {
     try {
       Position position = await _determinePosition();
       String? address = await getAddressFromLatLng(position.latitude, position.longitude);
+
       setState(() {
         v_location_medecin = address?.split(', ')[1].split(' ').sublist(1).join(' ');
+
       });
 
       await fetchMedecins();
@@ -85,7 +91,7 @@ class _DoctorCardState extends State<DoctorCard> {
         Map<String, dynamic> data = jsonDecode(response.body);
         if (data["status"] == "OK" && data.containsKey("results") && data["results"].isNotEmpty) {
           String _formattedAddress = data["results"][0]["formatted_address"];
-          print("Response: $_formattedAddress");
+
           return _formattedAddress;
         } else {
           print("Error: No results found for the provided coordinates.");
@@ -134,13 +140,16 @@ class _DoctorCardState extends State<DoctorCard> {
 
   void _showFilterDialog() {
     final List<String> specialites = [
-      "Médecin généraliste",
+      "Medecin generaliste",
       "Dentiste",
-      "Pédiatre",
+      "Pediatre",
       "Cardiologue",
     ];
     String selectedSpecialite = specialites.first;
     String defaultVille = v_location_medecin ?? "";
+    TextEditingController nameController = TextEditingController();
+    TextEditingController addressController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -154,46 +163,48 @@ class _DoctorCardState extends State<DoctorCard> {
               ),
             ),
           ),
-          content: Container(
-            padding: EdgeInsets.all(20.0),
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DropdownButtonFormField<String>(
-                  value: selectedSpecialite,
-                  onChanged: (value) {
-                    selectedSpecialite = value!;
-                  },
-                  items: specialites.map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  decoration: InputDecoration(
-                    labelText: "Spécialité",
-                    icon: Icon(Icons.local_hospital),
+          content: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.all(20.0),
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: selectedSpecialite,
+                    onChanged: (value) {
+                      selectedSpecialite = value!;
+                    },
+                    items: specialites.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: "Spécialité",
+                      icon: Icon(Icons.local_hospital),
+                    ),
                   ),
-                ),
-                SizedBox(height: 20),
-                TextFormField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: "Nom et prénom",
-                    icon: Icon(Icons.person),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: "Nom et prénom",
+                      icon: Icon(Icons.person),
+                    ),
                   ),
-                ),
-                SizedBox(height: 20),
-                TextFormField(
-                  controller: addressController..text = defaultVille,
-                  decoration: InputDecoration(
-                    labelText: "Ville",
-                    icon: Icon(Icons.location_on),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    controller: addressController..text = defaultVille,
+                    decoration: InputDecoration(
+                      labelText: "Ville",
+                      icon: Icon(Icons.location_on),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           actions: <Widget>[
@@ -226,6 +237,9 @@ class _DoctorCardState extends State<DoctorCard> {
       },
     );
   }
+
+
+
 
   Widget _buildSkills(String skills) {
     List<String> skillList = skills.split(',');
@@ -274,14 +288,19 @@ class _DoctorCardState extends State<DoctorCard> {
           ),
           Consumer<ThemeModel>(
             builder: (context, themeNotifier, child) {
-              return IconButton(
+              return Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      themeNotifier.isDark ? Icons.nightlight_round : Icons.wb_sunny,
+                      color: themeNotifier.isDark ? Colors.white : Colors.black,
+                    ),
+                    onPressed: () {
+                      themeNotifier.isDark = !themeNotifier.isDark;
+                    },
+                  ),
 
-                icon: Icon(themeNotifier.isDark ? Icons.nightlight_round : Icons.wb_sunny,
-                  color: themeNotifier.isDark ? Colors.white : Colors.black,
-                ),
-                onPressed: () {
-                  themeNotifier.isDark = !themeNotifier.isDark;
-                },
+                ],
               );
             },
           ),
@@ -387,13 +406,20 @@ class _DoctorCardState extends State<DoctorCard> {
                                     ),
                                   ),
                                   SizedBox(height: 20),
-                                  Text(
-                                    med.nomPrenom!,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  Consumer<ThemeModel>(
+                                    builder: (context, themeNotifier, child) {
+                                      return Text(
+                                        med.nomPrenom!,
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: themeNotifier.isDark ? Colors.black : Colors.black,
+                                        ),
+                                      );
+                                    },
                                   ),
+
+
                                   SizedBox(height: 10),
                                   Text(
                                     med.specialite!,
@@ -414,24 +440,56 @@ class _DoctorCardState extends State<DoctorCard> {
                                         ),
                                         child: Text(
                                           competence.trim(),
-                                          style: TextStyle(fontSize: 12),
+                                          style: TextStyle(
+                                              fontSize: 12,
+                                            color: Colors.black
+                                          ),
+
                                         ),
                                       );
                                     }).toList(),if (_isSelected)
                                     Padding(
                                       padding: const EdgeInsets.only(bottom: 10),
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => AddAppointmentPage(selectedDoctor: med),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => AddAppointmentPage(selectedDoctor: med),
+                                                ),
+                                              );
+                                            },
+                                            child: Text(
+                                              'Prendre rendez-vous',
+                                              style: TextStyle(color: Colors.white),
                                             ),
-                                          );
-                                        },
-                                        child: Text('Prendre rendez-vous'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              padding: EdgeInsets.symmetric(horizontal: 16),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              FlutterPhoneDirectCaller.callNumber(med.telephone!);
+                                            },
+                                            child: Icon(Icons.phone, color: Colors.white), // Couleur blanche pour l'icône
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.green,
+                                              shape: CircleBorder(),
+                                              padding: EdgeInsets.all(10),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
+
 
 
                                 ],
@@ -466,8 +524,8 @@ class _DoctorCardState extends State<DoctorCard> {
                 text: 'Home',
               ),
               GButton(
-                icon: Icons.settings,
-                text: 'Paramètres',
+                icon: Icons.list,
+                text: 'Mes rendez-vous',
               ),
               GButton(
                 icon: Icons.filter_alt,
@@ -481,6 +539,12 @@ class _DoctorCardState extends State<DoctorCard> {
               });
               if (index == 2) {
                 _showFilterDialog();
+              }
+              if (index == 1) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ListeRendezVous()),
+                );
               }
             },
           ),

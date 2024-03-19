@@ -68,10 +68,25 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
         title: Text('DoctorApp'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () {
-              // Handle logout
-            },
+              icon: Icon(Icons.logout),
+              onPressed: () {
+                AwesomeDialog(
+                  context: context,
+                  dialogType: DialogType.warning,
+                  animType: AnimType.bottomSlide,
+                  title: 'Confirmation de déconnexion',
+                  desc: 'Voulez-vous vraiment se déconnecter ?',
+                  btnCancelOnPress: () {},
+                  btnOkOnPress: () {
+                    //Se deconnecter avec auth logout
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => LoginPage()),
+                    );
+                  },
+                )..show();
+              }
           ),
           Consumer<ThemeModel>(
             builder: (context, themeNotifier, child) {
@@ -254,20 +269,45 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
             padding: EdgeInsets.symmetric(horizontal: 20), // Marge à gauche et à droite
             child: Container(
               margin: EdgeInsets.only(bottom: 20),
-              child: SizedBox(
+              child:_selectedTimeSlot==null
+    ?
+              SizedBox(
+                height: 50, // Hauteur fixe pour le bouton
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.red, // Fond rouge
+                    borderRadius: BorderRadius.circular(10), // Coins arrondis
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 20), // Padding horizontal de 20
+                  child: Center(
+                    child: Text(
+                      "Veuillez choisir un créneau avant de valider la prise de rendez-vous.",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold, // Police en gras
+                         // Nom de votre police personnalisée
+                      ),
+                    ),
+                  ),
+                ),
+              )
+              : SizedBox(
                 height: 50, // Hauteur fixe pour le bouton
                 child: SwipeableButtonView(
+
                   buttonText: _selectedTimeSlot == null ? "Sélectionner l'heure" : "Valider",
                   buttonWidget: _selectedTimeSlot == null
-                      ? Icon(Icons.close, color: Colors.white)
-                      : Icon(Icons.check, color: Colors.white),
-                  activeColor: _selectedTimeSlot == null ? Colors.red : Colors.purple,
+                      ? Icon(Icons.close, color: Colors.red) // Icône par défaut
+                      : Icon(Icons.check, color: Colors.green), // Icône par défaut
+                  activeColor: _selectedTimeSlot == null ? Colors.red : Colors.green,
                   isFinished: isFinished,
+
                   onWaitingProcess: () {
                     if (_selectedTimeSlot != null) {
                       Future.delayed(Duration(seconds: 1), () {
                         setState(() {
-                          isFinished = true;
+                          isFinished = !isFinished;
                         });
                       });
                     }
@@ -278,10 +318,14 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
                         animType: AnimType.topSlide,
                         title: 'Attention',
                         desc: 'Veuillez choisir un créneau avant de valider la prise de rendez-vous.',
-                        btnCancelOnPress: () {},
+                        btnCancelOnPress: () {
+                          setState(() {
+                            isFinished = !isFinished;
+                          });
+                        },
                         btnOkOnPress: () {
                           setState(() {
-                            isFinished = false;
+                            isFinished = !isFinished;
                           });
                         },
                       )..show();
@@ -339,13 +383,12 @@ class _AddAppointmentPageState extends State<AddAppointmentPage> {
                         print('Erreur lors de la prise de rendez-vous: $e');
                         // Gérer l'erreur
                       }
-
-
                     }
                   },
-
-
                 ),
+
+
+
               ),
             ),
           ),

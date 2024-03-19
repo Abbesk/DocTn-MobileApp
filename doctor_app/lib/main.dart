@@ -16,7 +16,7 @@ void main() async {
 
 // Initialize notifications en utilisant l'icône personnalisée
   await AwesomeNotifications().initialize(
-    null,
+    'doctor_app/assets/images/icone_docteur2.png',
     [
       NotificationChannel(
         channelKey: 'basic_channel',

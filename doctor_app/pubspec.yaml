@@ -60,6 +60,7 @@ dependencies:
   flutter_datetime_picker_bdaya: ^3.0.2
   table_calendar: ^3.1.0
   awesome_notifications: ^0.8.2
+  flutter_phone_direct_caller: ^2.1.1
 
 
 dev_dependencies:

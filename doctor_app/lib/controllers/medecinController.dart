@@ -24,7 +24,7 @@ class MedController extends GetxController {
   Future<List<Medecin>> fetchMedecins({String? ville, String? nomPrenom, String? specialite}) async {
     try {
       final token = (await storage.read(key: "jwt_token"))?.replaceAll('"', '');
-      final baseUrl = 'http://192.168.122.232:8080/api/v1/medecin/all';
+      final baseUrl = 'http://192.168.151.232:8080/api/v1/medecin/all';
 
       // Construire l'URL en ajoutant les paramètres si non nuls
       String url = baseUrl;
@@ -62,7 +62,7 @@ class MedController extends GetxController {
   Future<List<String>> fetchAvailableTimeSlots(int doctorId, DateTime date) async {
     try {
       final token = await storage.read(key: "jwt_token"); // Assurez-vous de récupérer correctement le jeton
-      final baseUrl = 'http://192.168.122.232:8080/api/v1/rendezvous/$doctorId/disponible/${DateFormat('yyyy-MM-dd').format(date)}';
+      final baseUrl = 'http://192.168.151.232:8080/api/v1/rendezvous/$doctorId/disponible/${DateFormat('yyyy-MM-dd').format(date)}';
 
       final response = await http.get(
         Uri.parse(baseUrl),
@@ -94,7 +94,7 @@ class MedController extends GetxController {
   }) async {
     try {
       final token = (await storage.read(key: "jwt_token"))?.replaceAll('"', '');
-      final baseUrl = 'http://192.168.122.232:8080/api/v1/rendezvous';
+      final baseUrl = 'http://192.168.151.232:8080/api/v1/rendezvous';
       final Map<String, dynamic> body = {
         "date": date,
         "heureDebut": heureDebut,
@@ -126,7 +126,7 @@ class MedController extends GetxController {
   Future<List<RendezVous>> getAllRendezVous() async {
     try {
       final token = await storage.read(key: "jwt_token");
-      final baseUrl = 'http://192.168.122.232:8080/api/v1/patient/rendezvous';
+      final baseUrl = 'http://192.168.151.232:8080/api/v1/rendezvous';
 
       final response = await http.get(
         Uri.parse(baseUrl),
@@ -137,9 +137,9 @@ class MedController extends GetxController {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonData = json.decode(response.body);
-        final List<RendezVous> rendezVousList =
-        jsonData.map((data) => RendezVous.fromJson(data)).toList();
+        final Map<String, dynamic> jsonData = json.decode(response.body);
+        final List<dynamic> rendezVousData = jsonData['data'];
+        final List<RendezVous> rendezVousList = rendezVousData.map((data) => RendezVous.fromJson(data)).toList();
         return rendezVousList;
       } else {
         final errorMessage = response.reasonPhrase ?? 'Unknown error';
@@ -151,6 +151,5 @@ class MedController extends GetxController {
       throw Exception('Unexpected error occurred while fetching rendez-vous');
     }
   }
-
 
 }
